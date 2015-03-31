@@ -276,20 +276,23 @@ sub find_bonding_sysfs {
 	$bonding{$bond}{mode} = "mode=$nr ($mode)";
 
 	# get 802.3ad number of ports
+	my $ad_num = 0;
 	if ($bonding{$bond}{mode} eq 'mode=4 (802.3ad)') {
 	    open my $AD_NUM, '<', "$sysdir/$bond/bonding/ad_num_ports"
 	      or unknown_error("ERROR: Couldn't open $sysdir/$bond/bonding/ad_num_ports: $!");
-	    my $ad_num = <$AD_NUM>;
+	    $ad_num = <$AD_NUM>;
 	    close $AD_NUM;
 	    $bonding{$bond}{ad_num} = $ad_num;
 	}
 
 	# get slaves
 	my @slaves = ();
-	open my $SLAVES, '<', "$sysdir/$bond/bonding/slaves"
-	  or unknown_error("Couldn't open $sysdir/$bond/bonding/slaves: $!");
-	@slaves = split m/\s+/xms, <$SLAVES>;
-	close $SLAVES;
+	if ($ad_num > 0) {
+		open my $SLAVES, '<', "$sysdir/$bond/bonding/slaves"
+		  or unknown_error("Couldn't open $sysdir/$bond/bonding/slaves: $!");
+		@slaves = split m/\s+/xms, <$SLAVES>;
+		close $SLAVES;
+	}
 
 	# get active slave
 	open my $ACTIVE, '<', "$sysdir/$bond/bonding/active_slave"
