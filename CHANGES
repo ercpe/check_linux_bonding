@@ -1,0 +1,71 @@
+1.4     2014-05-13
+------------------
+
+* Fix for Linux kernel versions >= 3.13
+
+
+1.3.2   2012-12-14
+------------------
+
+* Added an option "--ignore-num-ad" which allows the user to specify
+  that the plugin shouldn't warn if the number of AD ports are not
+  equal to the number of slaves. E.g. if the IEEE 802.3ad bonding
+  device spans multiple switches.
+* Manual pages are now written in Docbook XML
+* Bugfix for primary slave when using procfs
+
+
+1.3.1   2010-10-26
+------------------
+
+* For 802.3ad bonding interfaces, the plugin now checks that the
+  number of aggregated ports are equal to the number of slaves
+  assigned to the bonding interface.
+
+
+1.3.0   2010-08-26
+------------------
+
+* The plugin is now ePN-compatible. This is useful for the odd case
+  where you wish to check bonding on the Nagios server, without using
+  NRPE or other agents.
+* Bugfix for the '-S' or '--short-state' option
+* Use anonymous function for collecting perl warnings
+
+
+1.2.1   2010-02-17
+------------------
+
+* New option '--slave-down' to set the alert state reported when a
+  slave interface is down
+
+
+1.2.0   2010-02-16
+------------------
+
+* Option '-S' is now short for '--short-state'
+* Better handling of perl warnings during execution
+* Added option '--disable-sysfs' to disable the use of /sysfs,
+  i.e. only use the /proc filesystem
+
+
+1.1.0   2009-10-09
+------------------
+
+* New blacklist option, thanks to Giles Westwood for a patch
+* New option '--no-bonding' to specify return value when no bonding
+  interfaces are found
+* Redirect STDERR to STDOUT if the plugin is run without a TTY
+* Man page is moved to section 8
+
+
+1.0.1   2009-07-23
+------------------
+
+* A couple of unimportant cosmetic changes
+
+
+1.0.0   2009-06-12
+------------------
+
+* Initial release

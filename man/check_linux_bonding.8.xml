@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE reference PUBLIC "-//OASIS//DTD DocBook V4.4//EN"
+"http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd">
+<reference>
+<title>Nagios plugin</title>
+<refentry>
+
+  <refentryinfo>
+    <productname>check_linux_bonding</productname>
+    <orgname>Trond Hasle Amundsen &lt;t.h.amundsen@usit.uio.no&gt;</orgname>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>check_linux_bonding</refentrytitle>
+    <manvolnum>8</manvolnum>
+  </refmeta>
+
+  <refnamediv id='name'>
+    <refname>check_linux_bonding</refname>
+    <refpurpose>
+      Nagios plugin for checking the status of bonded network
+      interfaces (masters and slaves) on Linux servers.
+    </refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv id='synopsis'>
+    <cmdsynopsis>
+      <command>check_linux_bonding</command>
+      <arg choice='opt'>
+	<replaceable>option</replaceable>...
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id='description'>
+    <title>DESCRIPTION</title>
+    <para>
+      <command>check_linux_bonding</command> is a plugin for the
+      Nagios monitoring software that checks bonding interfaces on
+      Linux. The plugin is fairly simple and will report any
+      interfaces that are down (both masters and slaves). It will also
+      alert you of bonding interfaces with only one slave, since that
+      usually points to a misconfiguration. If no bonding interfaces
+      are detected, the plugin will exit with an OK value (modifiable
+      with the <option>--no-bonding</option> option). It is therefore
+      safe to run this plugin on all your Linux machines:
+      <programlisting>
+$ ./check_linux_bonding
+OK: No bonding interfaces found
+      </programlisting>
+      The plugin will first try to use the sysfs
+      (<filename>/sys</filename>) filesystem to detect bonding
+      interfaces. If that does not work, i.e. the kernel or bonding
+      module is too old for the necessary files to exist, the plugin
+      will use procfs (<filename>/proc</filename>) as a fallback. The
+      plugin supports an unlimited number of bonding interfaces.
+    </para>
+    <para>
+      In the OK output, the plugin will indicate which of the slaves
+      is active with an exclamation mark <quote>!</quote>, if
+      applicable. If one of the slaves is configured as primary, this
+      is indicated with an asterisk <quote>*</quote>:
+      <programlisting>
+$ ./check_linux_bonding
+Interface bond0 is UP: mode=1 (active-backup), 2 slaves: eth0*, eth1!
+      </programlisting>
+    </para>
+  </refsect1>
+
+  <refsect1 id='options'>
+    <title>OPTIONS</title>
+    <variablelist remap='IP'>
+      <varlistentry>
+	<term>
+	  <option>-b</option>, <option>--blacklist
+	  <replaceable>string</replaceable> |
+	  <replaceable>file</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    Blacklist one or more interfaces. The option can be specified multiple
+	    times. If the argument is a file, the file is expected to contain a
+	    single line with the same syntax, i.e.:
+	    <programlisting>
+<replaceable>interface1</replaceable>,<replaceable>interface2</replaceable>,...
+            </programlisting>
+	    Examples:
+	    <programlisting>
+check_linux_bonding -b bond1 -b eth1
+check_linux_bonding -b bond1,eth1
+check_linux_bonding -b /etc/check_linux_bonding.black
+            </programlisting>
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-n</option>, <option>--no-bonding <replaceable>string</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    This option lets you specify the return value of the
+	    plugin if no bonding interfaces are found. The option
+	    expects <quote>ok</quote>, <quote>warning</quote>,
+	    <quote>critical</quote> or <quote>unknown</quote> as the
+	    argument. Default is <quote>ok</quote> if the option is
+	    not present.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--slave-down</option> <replaceable>string</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    This option lets you specify the return value of the
+	    plugin if a slave interface is down. The option expects
+	    <quote>ok</quote>, <quote>warning</quote>,
+	    <quote>critical</quote> or <quote>unknown</quote> as the
+	    argument. Default is <quote>warning</quote> if the option
+	    is not present.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-t</option>, <option>--timeout <replaceable>seconds</replaceable></option>
+	</term>
+	<listitem>
+	  <para>
+	    The number of seconds after which the plugin will
+	    abort. Default timeout is 5 seconds if the option is not
+	    present.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-s</option>, <option>--state</option>
+	</term>
+	<listitem>
+	  <para>
+	    Prefix each alert with its corresponding service state
+	    (i.e. warning, critical etc.). This is useful in case of
+	    several alerts from the same monitored system.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-S</option>, <option>--short-state</option>
+	</term>
+	<listitem>
+	  <para>
+	    Same as the <option>--state</option> option above, except
+	    that the state is abbreviated to a single letter
+	    (<emphasis>W</emphasis>=warning,
+	    <emphasis>C</emphasis>=critical etc.).
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--ignore-num-ad</option>
+	</term>
+	<listitem>
+	  <para>
+	    Only relevant for IEEE 802.3ad type bonding. Turning on
+	    this option instructs the plugin to not issue a warning if
+	    the number of AD ports are not equal to the number of
+	    slaves. Usually you'll want the default behaviour, but if
+	    your 802.3ad bonding device is bound on more than one
+	    switch, you'll want to use this option to avoid false
+	    positives.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--linebreak</option> <replaceable>string</replaceable>
+	</term>
+	<listitem>
+	  <para>
+	    check_linux_bonding will sometimes report more than one line, e.g. if
+	    there are several alerts. If the script has a TTY, it will use regular
+	    linebreaks. If not (which is the case with NRPE) it will use HTML
+	    linebreaks. Sometimes it can be useful to control what the plugin uses
+	    as a line separator, and this option provides that control.
+	  </para>
+	  <para>
+	    The argument is the exact string to be used as the line
+	    separator. There are two exceptions, i.e. two keywords
+	    that translates to the following:
+	  </para>
+	  <para>
+	    <emphasis>REG</emphasis>: Regular linebreaks,
+	    i.e. <quote>\n</quote>.
+	  </para>
+	  <para>
+	    <emphasis>HTML</emphasis>: HTML linebreaks,
+	    i.e. <quote>&lt;br/&gt;</quote>.
+	  </para>
+	  <para>
+	    This is a rather special option that is normally not
+	    needed. The default behaviour should be sufficient for
+	    most users.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>--disable-sysfs</option>
+	</term>
+	<listitem>
+	  <para>
+	    Sometimes the information in <filename>/sys</filename> is
+	    partly absent or deficient, and the plugin is unable to
+	    detect this discrepancy and reports errors. This usually
+	    happens with old Linux kernels and Xen domain-0
+	    systems. This option exists as a workaround. If specified,
+	    this option will make the plugin ignore the
+	    <filename>/sys</filename> filesystem alltogether and use
+	    the <filename>/proc</filename> filesystem instead.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-v</option>, <option>--verbose</option>
+	</term>
+	<listitem>
+	  <para>
+	    Verbose output. Will report status on all bonding
+	    interfaces, regardless of their alert state.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-h</option>, <option>--help</option>
+	</term>
+	<listitem>
+	  <para>
+	    Display help message and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+	<term>
+	  <option>-V</option>, <option>--version</option>
+	</term>
+	<listitem>
+	  <para>
+	    Print version info and exit.
+	  </para>
+	</listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1 id='diagnostics'>
+    <title>DIAGNOSTICS</title>
+    <para>
+      The option <option>-v</option> or <option>--verbose</option> can
+      be specified to display all bonding interfaces.
+    </para>
+  </refsect1>
+
+  <refsect1 id='dependencies'>
+    <title>DEPENDENCIES</title>
+    <para>
+      This plugin depends on sysfs and fallbacks to procfs. Without
+      these filesystems the plugin will not find any bonding
+      interfaces.
+    </para>
+  </refsect1>
+
+  <refsect1 id='exit_status'>
+    <title>EXIT STATUS</title>
+    <para>
+      If no errors are discovered, a value of 0 (OK) is returned. An
+      exit value of 1 (WARNING) signifies one or more non-critical
+      errors, while 2 (CRITICAL) signifies one or more critical
+      errors.
+    </para>
+    <para>
+      The exit value 3 (UNKNOWN) is reserved for errors within the
+      script, or errors getting values sysfs or procfs.
+    </para>
+  </refsect1>
+
+  <refsect1 id='bugs_and_limitations'>
+    <title>BUGS AND LIMITATIONS</title>
+    <para>
+      None known at present.
+    </para>
+  </refsect1>
+
+  <refsect1 id='incompatibilities'>
+    <title>INCOMPATIBILITIES</title>
+    <para>
+      The plugin is only compatible with the Linux operating system.
+    </para>
+  </refsect1>
+
+  <refsect1 id='license_and_copyright'>
+    <title>LICENSE AND COPYRIGHT</title>
+    <para>
+      This program is free software: you can redistribute it and/or modify
+      it under the terms of the GNU General Public License as published by
+      the Free Software Foundation, either version 3 of the License, or (at
+      your option) any later version.
+    </para>
+    <para>
+      This program is distributed in the hope that it will be useful, but
+      WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+      General Public License for more details.
+    </para>
+    <para>
+      You should have received a copy of the GNU General Public License
+      along with this program.  If not, see http://www.gnu.org/licenses/.
+    </para>
+  </refsect1>
+
+  <refsect1 id='see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <uri>
+	http://folk.uio.no/trondham/software/check_linux_bonding.html
+      </uri>
+    </para>
+  </refsect1>
+
+</refentry>
+</reference>
+

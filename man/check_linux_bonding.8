@@ -1,0 +1,223 @@
+'\" t
+.\"     Title: check_linux_bonding
+.\"    Author: Trond Hasle Amundsen <t.h.amundsen@usit.uio.no>
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: 05/13/2014
+.\"    Manual: Nagios plugin
+.\"    Source: check_linux_bonding
+.\"  Language: English
+.\"
+.TH "CHECK_LINUX_BONDING" "8" "05/13/2014" "check_linux_bonding" "Nagios plugin"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+check_linux_bonding \- Nagios plugin for checking the status of bonded network interfaces (masters and slaves) on Linux servers\&.
+.SH "SYNOPSIS"
+.HP \w'\fBcheck_linux_bonding\fR\ 'u
+\fBcheck_linux_bonding\fR [\fIoption\fR\&.\&.\&.]
+.SH "DESCRIPTION"
+.PP
+
+\fBcheck_linux_bonding\fR
+is a plugin for the Nagios monitoring software that checks bonding interfaces on Linux\&. The plugin is fairly simple and will report any interfaces that are down (both masters and slaves)\&. It will also alert you of bonding interfaces with only one slave, since that usually points to a misconfiguration\&. If no bonding interfaces are detected, the plugin will exit with an OK value (modifiable with the
+\fB\-\-no\-bonding\fR
+option)\&. It is therefore safe to run this plugin on all your Linux machines:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \&./check_linux_bonding
+OK: No bonding interfaces found
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+The plugin will first try to use the sysfs (/sys) filesystem to detect bonding interfaces\&. If that does not work, i\&.e\&. the kernel or bonding module is too old for the necessary files to exist, the plugin will use procfs (/proc) as a fallback\&. The plugin supports an unlimited number of bonding interfaces\&.
+.PP
+In the OK output, the plugin will indicate which of the slaves is active with an exclamation mark
+\(lq!\(rq, if applicable\&. If one of the slaves is configured as primary, this is indicated with an asterisk
+\(lq*\(rq:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \&./check_linux_bonding
+Interface bond0 is UP: mode=1 (active\-backup), 2 slaves: eth0*, eth1!
+      
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "OPTIONS"
+.PP
+\fB\-b\fR, \fB\-\-blacklist \fR\fB\fIstring\fR\fR\fB | \fR\fB\fIfile\fR\fR
+.RS 4
+Blacklist one or more interfaces\&. The option can be specified multiple times\&. If the argument is a file, the file is expected to contain a single line with the same syntax, i\&.e\&.:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\fIinterface1\fR,\fIinterface2\fR,\&.\&.\&.
+            
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+Examples:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+check_linux_bonding \-b bond1 \-b eth1
+check_linux_bonding \-b bond1,eth1
+check_linux_bonding \-b /etc/check_linux_bonding\&.black
+            
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.RE
+.PP
+\fB\-n\fR, \fB\-\-no\-bonding \fR\fB\fIstring\fR\fR
+.RS 4
+This option lets you specify the return value of the plugin if no bonding interfaces are found\&. The option expects
+\(lqok\(rq,
+\(lqwarning\(rq,
+\(lqcritical\(rq
+or
+\(lqunknown\(rq
+as the argument\&. Default is
+\(lqok\(rq
+if the option is not present\&.
+.RE
+.PP
+\fB\-\-slave\-down\fR \fIstring\fR
+.RS 4
+This option lets you specify the return value of the plugin if a slave interface is down\&. The option expects
+\(lqok\(rq,
+\(lqwarning\(rq,
+\(lqcritical\(rq
+or
+\(lqunknown\(rq
+as the argument\&. Default is
+\(lqwarning\(rq
+if the option is not present\&.
+.RE
+.PP
+\fB\-t\fR, \fB\-\-timeout \fR\fB\fIseconds\fR\fR
+.RS 4
+The number of seconds after which the plugin will abort\&. Default timeout is 5 seconds if the option is not present\&.
+.RE
+.PP
+\fB\-s\fR, \fB\-\-state\fR
+.RS 4
+Prefix each alert with its corresponding service state (i\&.e\&. warning, critical etc\&.)\&. This is useful in case of several alerts from the same monitored system\&.
+.RE
+.PP
+\fB\-S\fR, \fB\-\-short\-state\fR
+.RS 4
+Same as the
+\fB\-\-state\fR
+option above, except that the state is abbreviated to a single letter (\fIW\fR=warning,
+\fIC\fR=critical etc\&.)\&.
+.RE
+.PP
+\fB\-\-ignore\-num\-ad\fR
+.RS 4
+Only relevant for IEEE 802\&.3ad type bonding\&. Turning on this option instructs the plugin to not issue a warning if the number of AD ports are not equal to the number of slaves\&. Usually you\'ll want the default behaviour, but if your 802\&.3ad bonding device is bound on more than one switch, you\'ll want to use this option to avoid false positives\&.
+.RE
+.PP
+\fB\-\-linebreak\fR \fIstring\fR
+.RS 4
+check_linux_bonding will sometimes report more than one line, e\&.g\&. if there are several alerts\&. If the script has a TTY, it will use regular linebreaks\&. If not (which is the case with NRPE) it will use HTML linebreaks\&. Sometimes it can be useful to control what the plugin uses as a line separator, and this option provides that control\&.
+.sp
+The argument is the exact string to be used as the line separator\&. There are two exceptions, i\&.e\&. two keywords that translates to the following:
+.sp
+
+\fIREG\fR: Regular linebreaks, i\&.e\&.
+\(lq\en\(rq\&.
+.sp
+
+\fIHTML\fR: HTML linebreaks, i\&.e\&.
+\(lq<br/>\(rq\&.
+.sp
+This is a rather special option that is normally not needed\&. The default behaviour should be sufficient for most users\&.
+.RE
+.PP
+\fB\-\-disable\-sysfs\fR
+.RS 4
+Sometimes the information in
+/sys
+is partly absent or deficient, and the plugin is unable to detect this discrepancy and reports errors\&. This usually happens with old Linux kernels and Xen domain\-0 systems\&. This option exists as a workaround\&. If specified, this option will make the plugin ignore the
+/sys
+filesystem alltogether and use the
+/proc
+filesystem instead\&.
+.RE
+.PP
+\fB\-v\fR, \fB\-\-verbose\fR
+.RS 4
+Verbose output\&. Will report status on all bonding interfaces, regardless of their alert state\&.
+.RE
+.PP
+\fB\-h\fR, \fB\-\-help\fR
+.RS 4
+Display help message and exit\&.
+.RE
+.PP
+\fB\-V\fR, \fB\-\-version\fR
+.RS 4
+Print version info and exit\&.
+.RE
+.SH "DIAGNOSTICS"
+.PP
+The option
+\fB\-v\fR
+or
+\fB\-\-verbose\fR
+can be specified to display all bonding interfaces\&.
+.SH "DEPENDENCIES"
+.PP
+This plugin depends on sysfs and fallbacks to procfs\&. Without these filesystems the plugin will not find any bonding interfaces\&.
+.SH "EXIT STATUS"
+.PP
+If no errors are discovered, a value of 0 (OK) is returned\&. An exit value of 1 (WARNING) signifies one or more non\-critical errors, while 2 (CRITICAL) signifies one or more critical errors\&.
+.PP
+The exit value 3 (UNKNOWN) is reserved for errors within the script, or errors getting values sysfs or procfs\&.
+.SH "BUGS AND LIMITATIONS"
+.PP
+None known at present\&.
+.SH "INCOMPATIBILITIES"
+.PP
+The plugin is only compatible with the Linux operating system\&.
+.SH "LICENSE AND COPYRIGHT"
+.PP
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version\&.
+.PP
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\&. See the GNU General Public License for more details\&.
+.PP
+You should have received a copy of the GNU General Public License along with this program\&. If not, see http://www\&.gnu\&.org/licenses/\&.
+.SH "SEE ALSO"
+.PP
+
+http://folk\&.uio\&.no/trondham/software/check_linux_bonding\&.html
+.SH "AUTHORS"
+.PP
+\fBTrond Hasle Amundsen <t\&.h\&.amundsen@usit\&.uio\&.no>\fR

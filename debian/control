@@ -1,0 +1,17 @@
+Source: check-linux-bonding
+Section: admin
+Priority: extra
+Maintainer: Trond Hasle Amundsen <t.h.amundsen@usit.uio.no>
+Build-Depends: debhelper (>= 7), perl
+Standards-Version: 3.8.3
+Homepage: http://folk.uio.no/trondham/software/check_linux_bonding.html
+
+Package: check-linux-bonding
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}
+Suggests: nagios-nrpe-plugin
+Description: check_linux_bonding is a plugin for the Nagios monitoring
+ software that checks bonding interfaces on Linux. The plugin is
+ fairly simple and will report any interfaces that are down (both
+ masters and slaves). It will also alert you of bonding interfaces
+ with only one slave, since that usually points to a misconfiguration.
